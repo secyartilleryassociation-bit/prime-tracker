@@ -158,7 +158,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="habits" id="hlist"></div>
       <div class="actions">
         <div class="add-btn" id="add-b">+ Add habit</div>
-        <div class="sync-btn" id="sync-b">Sync to Claude</div>
+        <div class="sync-btn" id="sync-b">Sync to Drive</div>
       </div>
     </div>
   </div>
@@ -325,15 +325,15 @@ $('ms').addEventListener('click',saveH);
 $('mdel').addEventListener('click',delH);
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
 
+const SYNC_URL='https://script.google.com/macros/s/AKfycby5LXXQzfroi055Nd5mcfPZxkELHRuZufZ7-Zx2JZTqxU74r2QC4MF8g_MJon0CN0CQWA/exec';
 function syncData(){
-  const lines=['HABIT TRACKER SYNC DATA','Generated: '+new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}),'','Please update my habit tracker data on Google Drive (Habit Tracker folder, ID: 1nsCT-B_ckigpazM4QbyaJbubhVN1w4mk).','','HABITS CONFIG:',JSON.stringify(H),'','ENTRIES (last 14 days):'];
-  const rc={};for(let i=0;i<14;i++){const d=new Date();d.setDate(d.getDate()-i);const k=dk(d);if(E[k])rc[k]=E[k]}
-  lines.push(JSON.stringify(rc),'','ALL ENTRIES:',JSON.stringify(E));
-  const txt=lines.join('\n');
-  if(navigator.share){navigator.share({title:'Prime Tracker Sync',text:txt}).then(()=>toast('Shared! Paste to Claude')).catch(()=>fb(txt))}else fb(txt);
+  const btn=$('sync-b'),nb=$('nav-sync');
+  btn.textContent='Syncing...';btn.style.opacity='.6';nb.style.opacity='.6';
+  const payload={habits:H,entries:E,syncedAt:new Date().toISOString(),device:navigator.userAgent.slice(0,60)};
+  fetch(SYNC_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
+  .then(()=>{toast('Synced to Drive!');btn.textContent='Sync to Drive';btn.style.opacity='1';nb.style.opacity='1'})
+  .catch(err=>{toast('Sync failed: '+err.message);btn.textContent='Sync to Drive';btn.style.opacity='1';nb.style.opacity='1'});
 }
-function fb(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('Copied! Paste to Claude')).catch(()=>mc(t))}else mc(t)}
-function mc(t){const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;left:-9999px';document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Copied!')}catch(e){toast('Could not copy')}document.body.removeChild(a)}
 
 $('sync-b').addEventListener('click',syncData);
 $('nav-sync').addEventListener('click',syncData);
