@@ -334,7 +334,7 @@ function syncData(){
   ifr.name='sync_frame';ifr.style.display='none';
   document.body.appendChild(ifr);
   const form=document.createElement('form');
-  form.method='POST';form.action=SYNC_URL;form.target='sync_frame';
+  form.method='GET';form.action=SYNC_URL;form.target='sync_frame';
   const inp=document.createElement('input');
   inp.type='hidden';inp.name='payload';inp.value=JSON.stringify(payload);
   form.appendChild(inp);document.body.appendChild(form);
