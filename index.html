@@ -330,9 +330,17 @@ function syncData(){
   const btn=$('sync-b'),nb=$('nav-sync');
   btn.textContent='Syncing...';btn.style.opacity='.6';nb.style.opacity='.6';
   const payload={habits:H,entries:E,syncedAt:new Date().toISOString(),device:navigator.userAgent.slice(0,60)};
-  fetch(SYNC_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),redirect:'follow'})
-  .then(r=>r.text()).then(t=>{try{const j=JSON.parse(t);if(j.status==='success'){toast('Synced to Drive!')}else{toast('Sync issue: '+(j.message||'unknown'))}}catch(e){toast('Synced!')}btn.textContent='Sync to Drive';btn.style.opacity='1';nb.style.opacity='1'})
-  .catch(err=>{toast('Sync failed: '+err.message);btn.textContent='Sync to Drive';btn.style.opacity='1';nb.style.opacity='1'});
+  const ifr=document.createElement('iframe');
+  ifr.name='sync_frame';ifr.style.display='none';
+  document.body.appendChild(ifr);
+  const form=document.createElement('form');
+  form.method='POST';form.action=SYNC_URL;form.target='sync_frame';
+  const inp=document.createElement('input');
+  inp.type='hidden';inp.name='payload';inp.value=JSON.stringify(payload);
+  form.appendChild(inp);document.body.appendChild(form);
+  ifr.onload=function(){toast('Synced to Drive!');btn.textContent='Sync to Drive';btn.style.opacity='1';nb.style.opacity='1';setTimeout(()=>{ifr.remove();form.remove()},2000)};
+  setTimeout(()=>{if(btn.textContent==='Syncing...'){toast('Sync sent!');btn.textContent='Sync to Drive';btn.style.opacity='1';nb.style.opacity='1'}},8000);
+  form.submit();
 }
 
 $('sync-b').addEventListener('click',syncData);
